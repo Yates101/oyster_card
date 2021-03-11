@@ -1,40 +1,41 @@
+require 'station'
+
 class Oystercard
-  attr_reader :balance, :in_journey
+  attr_reader :balance, :entry_station, :journey_history
+
   DEFAULT_BALANCE = 0
   MINIMUM_BALANCE = 1
   MAXIMUM_BALANCE = 90
   MINIMUM_FARE = 1
-  # JOURNEY_STATE = "Inactive"
 
   def initialize(balance = DEFAULT_BALANCE)
     @balance = balance
+    @entry_station = nil
+		@journey_history = []
   end
 
   def top_up(amount)
     if @balance + amount > MAXIMUM_BALANCE
-      raise "Top up invalid, balance maximum is £90, your current balance is #{@balance}"
+      raise "Top up invalid, balance maximum is #{Oystercard::MAXIMUM_BALANCE}, your current balance is #{@balance}"
     end
     @balance += amount
   end
 
-  def touch_in
+  def touch_in(station)
     if @balance < MINIMUM_BALANCE
       raise 'Insufficient funds'
     end
-    @in_journey = true
+    @entry_station = station
   end
 
-  def touch_out
+  def touch_out(station)
     deduct(MINIMUM_FARE)
-    @in_journey = false
+    @journey_history << { :entry => @entry_station, :exit => station }
+		@entry_station = nil
   end
 
   def in_journey?
-    if @in_journey == true
-      'in journey'
-    else @in_journey == false
-      'not in journey'
-    end
+		@entry_station != nil ? true : false
   end
 
   private
